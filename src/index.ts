@@ -1,9 +1,20 @@
-import { Hono } from 'hono'
+import { Hono } from "hono";
+import auth from "./routes/auth";
+import { cors } from "hono/cors";
 
-const app = new Hono()
+const app = new Hono();
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+// cors 配置
+app.use(
+  "*",
+  cors({
+    origin: "*",
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 
-export default app
+// 认证相关路由
+app.route("/api/auth", auth);
+
+export default app;

@@ -7,9 +7,15 @@
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
   "dependencies": {
-    "hono": "^4.11.7"
+    "hono": "^4.11.7",
+    "@neondatabase/serverless": "^1.0.2",
+    "bcryptjs": "^3.0.3",
+    "drizzle-orm": "^0.45.1"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
+    "drizzle-kit": "^0.31.8",
+    "tsx": "^4.21.0",
     "wrangler": "^4.4.0"
   }
 }
