@@ -46,7 +46,7 @@ async function remove(id: number) {
   return deleted;
 }
 
-const userdao = {
+const userDao = {
   insert,
   getById,
   getByUsername,
@@ -56,4 +56,4 @@ const userdao = {
   remove,
 };
 
-export default userdao;
+export default userDao;

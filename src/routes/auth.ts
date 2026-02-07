@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import userdao from "../db/userdao";
+import userDao from "../db/userDao";
 import { authMiddleware, generateJwtToken } from "../utils/jwt";
 import { hashPassword, verifyPassword } from "../utils/password";
 
@@ -13,13 +13,13 @@ auth.post("/register", async (c) => {
     return c.json({ message: "Missing required fields" }, 400);
   }
 
-  const existingUser = await userdao.getByEmail(email);
+  const existingUser = await userDao.getByEmail(email);
   if (existingUser) {
     return c.json({ message: "User already exists" }, 409);
   }
 
   const hashedPassword = await hashPassword(password);
-  const newUser = await userdao.insert({
+  const newUser = await userDao.insert({
     username,
     email,
     password: hashedPassword,
@@ -37,7 +37,7 @@ auth.post("/login", async (c) => {
     return c.json({ message: "Missing required fields" }, 400);
   }
 
-  const user = await userdao.getByEmail(email);
+  const user = await userDao.getByEmail(email);
   if (!user) {
     return c.json({ message: "Invalid credentials" }, 401);
   }
@@ -59,7 +59,7 @@ auth.use("/*", authMiddleware);
 // 根据 ID 获取用户
 auth.get("/id/:id", async (c) => {
   const id = Number(c.req.param("id"));
-  const user = await userdao.getById(id);
+  const user = await userDao.getById(id);
   if (user) {
     const { password: _, ...userWithoutPassword } = user;
     return c.json(userWithoutPassword);
@@ -71,7 +71,7 @@ auth.get("/id/:id", async (c) => {
 // 根据 Email 获取用户
 auth.get("/email/:email", async (c) => {
   const email = c.req.param("email");
-  const user = await userdao.getByEmail(email);
+  const user = await userDao.getByEmail(email);
   if (user) {
     const { password: _, ...userWithoutPassword } = user;
     return c.json(userWithoutPassword);
@@ -83,7 +83,7 @@ auth.get("/email/:email", async (c) => {
 // 根据 Username 获取用户
 auth.get("/username/:username", async (c) => {
   const username = c.req.param("username");
-  const user = await userdao.getByUsername(username);
+  const user = await userDao.getByUsername(username);
   if (user) {
     const { password: _, ...userWithoutPassword } = user;
     return c.json(userWithoutPassword);
@@ -102,7 +102,7 @@ auth.put("/id/:id", async (c) => {
     data.password = await hashPassword(data.password);
   }
 
-  const updatedUser = await userdao.update(id, data);
+  const updatedUser = await userDao.update(id, data);
   if (updatedUser) {
     const { password: _, ...userWithoutPassword } = updatedUser;
     return c.json(userWithoutPassword);
