@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import db from "./db";
-import { chatSession } from "./schema";
+import db from "../db";
+import { chatSession } from "../schema";
 
 export type Session = typeof chatSession.$inferSelect;
 export type NewSession = typeof chatSession.$inferInsert;

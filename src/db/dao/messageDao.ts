@@ -1,6 +1,6 @@
 import { asc, eq } from "drizzle-orm";
-import db from "./db";
-import { chatMessage } from "./schema";
+import db from "../db";
+import { chatMessage } from "../schema";
 
 export type Message = typeof chatMessage.$inferSelect;
 export type NewMessage = typeof chatMessage.$inferInsert;

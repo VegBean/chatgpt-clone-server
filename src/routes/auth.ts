@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import userDao from "../db/userDao";
+import userDao from "../db/dao/userDao";
 import { authMiddleware, generateJwtToken } from "../utils/jwt";
 import { hashPassword, verifyPassword } from "../utils/password";
 

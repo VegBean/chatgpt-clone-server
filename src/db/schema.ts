@@ -6,6 +6,7 @@ import {
   smallint,
   text,
   timestamp,
+  uuid,
   varchar,
 } from "drizzle-orm/pg-core";
 
@@ -30,9 +31,7 @@ export const user = pgTable(
 export const chatSession = pgTable(
   "chat_session",
   {
-    id: bigint("id", { mode: "number" })
-      .primaryKey()
-      .generatedByDefaultAsIdentity(),
+    id: uuid("id").primaryKey(),
     userId: bigint("user_id", { mode: "number" }).notNull(),
     sessionName: varchar("session_name", { length: 100 }).default(""),
     status: smallint("status").default(1).notNull(),
@@ -53,7 +52,7 @@ export const chatMessage = pgTable(
       .generatedAlwaysAsIdentity(),
     role: varchar("role", { length: 20 }).notNull(),
     content: text("content").notNull(),
-    sessionId: bigint("session_id", { mode: "number" }).notNull(),
+    sessionId: uuid("session_id").notNull(),
     createTime: timestamp("create_time").defaultNow().notNull(),
     updateTime: timestamp("update_time")
       .defaultNow()

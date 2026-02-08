@@ -3,15 +3,15 @@ import {
   HumanMessage,
   SystemMessage,
 } from "@langchain/core/messages";
-import messageDao from "../db/messageDao";
-import sessionDao from "../db/sessionDao";
+import messageDao from "../db/dao/messageDao";
+import sessionDao from "../db/dao/sessionDao";
 
 const generateSessionName = (prompt: string) => {
   // todo 调用大模型生成sessionName
-  return prompt.slice(0, 10);
+  return prompt.slice(0, 15);
 };
 
-const ensureSessionExists = async (sessionId: number, prompt: string) => {
+const ensureSessionExists = async (sessionId: string, prompt: string) => {
   const existingSession = await sessionDao.getById(sessionId);
   if (!existingSession) {
     await sessionDao.insert({
@@ -42,7 +42,7 @@ const chunkToText = (chunk: { content?: unknown }) => {
 };
 
 // 获取指定会话id的历史消息记录
-const getHistoryMessages = async (sessionId: number) => {
+const getHistoryMessages = async (sessionId: string) => {
   const records = await messageDao.listBySessionId(sessionId);
   return records.map((record) => {
     switch (record.role) {
@@ -59,7 +59,7 @@ const getHistoryMessages = async (sessionId: number) => {
 
 // 保存用户提问和模型回答到数据库
 const saveMessages = async (
-  sessionId: number,
+  sessionId: string,
   prompt: string,
   fulltext: string,
 ) => {

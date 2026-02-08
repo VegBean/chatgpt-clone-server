@@ -1,6 +1,6 @@
 import { HumanMessage } from "@langchain/core/messages";
 import { Hono } from "hono";
-import { stream, streamSSE } from "hono/streaming";
+import { streamSSE } from "hono/streaming";
 import { model } from "../utils/deepseek";
 import {
   chunkToText,
@@ -23,10 +23,10 @@ message.post("/send", async (c) => {
   }
 
   // 3.确保会话存在，如果不存在就根据sessionId创建一个
-  await ensureSessionExists(Number(sessionId), prompt);
+  await ensureSessionExists(sessionId, prompt);
 
   // 4.获取历史消息
-  const history = await getHistoryMessages(Number(sessionId));
+  const history = await getHistoryMessages(sessionId);
   history.push(new HumanMessage(prompt));
 
   // 5.返回SSE流式响应
@@ -63,19 +63,23 @@ message.post("/send", async (c) => {
       // SSE流发送消息数据
       await stream.writeSSE({
         event: "message",
-        data: JSON.stringify({ delta: text }),
+        data: JSON.stringify({ role: "assistant", delta: text }),
       });
     }
 
     // 5.4把完整的一问一答写入数据库
-    await saveMessages(Number(sessionId), prompt, fulltext);
+    await saveMessages(sessionId, prompt, fulltext);
 
     // 5.5回答结束
     await stream.writeSSE({
       event: "done",
-      data: JSON.stringify({ sessionId: Number(sessionId) }),
+      data: JSON.stringify({ sessionId: sessionId, fulltext }),
     });
   });
+});
+
+message.get("/uuid", (c) => {
+  return c.json({ uuid: crypto.randomUUID() });
 });
 
 export default message;
