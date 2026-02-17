@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import db from "../db";
 import { chatSession } from "../schema";
 
@@ -25,6 +25,14 @@ async function list() {
   return db.select().from(chatSession);
 }
 
+async function listByUserId(userId: number) {
+  return db
+    .select()
+    .from(chatSession)
+    .where(eq(chatSession.userId, userId))
+    .orderBy(desc(chatSession.createTime));
+}
+
 async function update(id: string, data: Partial<NewSession>) {
   const [updated] = await db
     .update(chatSession)
@@ -46,6 +54,7 @@ const sessionDao = {
   insert,
   getById,
   list,
+  listByUserId,
   update,
   remove,
 };

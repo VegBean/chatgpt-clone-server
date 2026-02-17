@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import auth from "./routes/auth";
 import { cors } from "hono/cors";
 import message from "./routes/message";
+import session from "./routes/session";
 
 const app = new Hono();
 
@@ -17,6 +18,7 @@ app.use(
 
 // 认证相关路由
 app.route("/api/auth", auth);
-app.route("api/message", message);
+app.route("/api/message", message);
+app.route("/api/session", session);
 
 export default app;

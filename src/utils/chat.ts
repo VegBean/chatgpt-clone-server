@@ -11,12 +11,16 @@ const generateSessionName = (prompt: string) => {
   return prompt.slice(0, 15);
 };
 
-const ensureSessionExists = async (sessionId: string, prompt: string) => {
+const ensureSessionExists = async (
+  sessionId: string,
+  userId: number,
+  prompt: string,
+) => {
   const existingSession = await sessionDao.getById(sessionId);
   if (!existingSession) {
     await sessionDao.insert({
       id: sessionId,
-      userId: 1,
+      userId,
       sessionName: generateSessionName(prompt),
     });
   }

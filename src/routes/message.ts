@@ -2,6 +2,9 @@ import { HumanMessage } from "@langchain/core/messages";
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { model } from "../utils/deepseek";
+import { authMiddleware } from "../utils/jwt";
+import sessionDao from "../db/dao/sessionDao";
+import messageDao from "../db/dao/messageDao";
 import {
   chunkToText,
   ensureSessionExists,
@@ -11,19 +14,63 @@ import {
 
 const message = new Hono();
 
-message.post("/send", async (c) => {
+message.use("/send/*", authMiddleware);
+message.use("/history/*", authMiddleware);
+
+message.get("/history/:sessionId", async (c) => {
+  const sessionId = c.req.param("sessionId");
+  const payload = c.get("jwtPayload") as { id?: number };
+  const authUserId = payload?.id;
+
+  if (!sessionId) {
+    return c.json({ message: "sessionId is required" }, 400);
+  }
+
+  if (!authUserId) {
+    return c.json({ message: "Unauthorized" }, 401);
+  }
+
+  const session = await sessionDao.getById(sessionId);
+  if (!session) {
+    return c.json({ messages: [] });
+  }
+
+  if (session.userId !== authUserId) {
+    return c.json({ message: "Forbidden" }, 403);
+  }
+
+  const messages = await messageDao.listBySessionId(sessionId);
+  return c.json({ messages });
+});
+
+message.post("/send/:sessionId", async (c) => {
   // 1.获取请求参数
   const reqbody = await c.req.json();
-  const sessionId = reqbody.sessionId;
+  const sessionId = c.req.param("sessionId");
   const prompt = reqbody.prompt;
+  const userId = reqbody.userId;
+  const payload = c.get("jwtPayload") as { id?: number };
+  const authUserId = payload?.id;
 
   // 2.参数校验
   if (!sessionId || !prompt) {
     return c.json({ message: "sessionId and message are required" }, 400);
   }
 
-  // 3.确保会话存在，如果不存在就根据sessionId创建一个
-  await ensureSessionExists(sessionId, prompt);
+  if (!authUserId) {
+    return c.json({ message: "Unauthorized" }, 401);
+  }
+
+  if (userId && Number(userId) !== authUserId) {
+    return c.json({ message: "Forbidden" }, 403);
+  }
+
+  const foundSession = await sessionDao.getById(sessionId);
+  if (foundSession && foundSession.userId !== authUserId) {
+    return c.json({ message: "Forbidden" }, 403);
+  }
+
+  await ensureSessionExists(sessionId, authUserId, prompt);
 
   // 4.获取历史消息
   const history = await getHistoryMessages(sessionId);
