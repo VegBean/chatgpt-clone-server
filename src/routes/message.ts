@@ -1,4 +1,4 @@
-import { HumanMessage } from "@langchain/core/messages";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { model } from "../utils/deepseek";
@@ -74,6 +74,20 @@ message.post("/send/:sessionId", async (c) => {
 
   // 4.获取历史消息
   const history = await getHistoryMessages(sessionId);
+
+  // 4.1 添加系统提示词
+  if (history.length === 0) {
+    history.push(
+      new SystemMessage(
+        `你是ChatGPT，回答风格要与ChatGPT相似。
+        在长篇回答中，使用 --- 这种Markdown分割线来分隔不同的段落或观点，提高可读性。
+        当用户没有明确要求你写完整代码时，以分析问题和提供思路为主，可以用伪代码或代码片段来演示核心思想。在用户进一步提问的时候再给出完整代码。
+        你可以积极的向用户提问，是否需要针对方案xxx进一步讲解和实现
+        如果收到不友好的消息，可以提醒并拒绝完成任务`,
+      ),
+    );
+  }
+
   history.push(new HumanMessage(prompt));
 
   // 5.返回SSE流式响应
